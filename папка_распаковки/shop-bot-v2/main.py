@@ -1,36 +1,35 @@
-import asyncio
-import logging
+import mysql.connector
+from config import Config
 
-from aiogram import types
+class Database:
+    def __init__(self):
+        self.connection = mysql.connector.connect(
+            host=Config.DB_HOST,
+            user=Config.DB_USER,
+            password=Config.DB_PASS,
+            database=Config.DB_NAME
+        )
+        self.cursor = self.connection.cursor(dictionary=True)
 
-import database
-from handlers import dp
+    def get_user(self, user_id: int) -> dict:
+        query = "SELECT * FROM users WHERE user_id = %s"
+        self.cursor.execute(query, (user_id,))
+        return self.cursor.fetchone()
 
-logger = logging.getLogger(__name__)
+    def add_user(self, user_id: int, username: str):
+        query = "INSERT INTO users (user_id, username) VALUES (%s, %s)"
+        self.cursor.execute(query, (user_id, username))
+        self.connection.commit()
 
-# сливы в тг - https://t.me/+7xF6Jb3ka9A0ZDhi
+    def get_items(self) -> list:
+        query = "SELECT * FROM items"
+        self.cursor.execute(query)
+        return self.cursor.fetchall()
 
-async def main():
-    database.open_db()
+    def get_item(self, item_id: int) -> dict:
+        query = "SELECT * FROM items WHERE id = %s"
+        self.cursor.execute(query, (item_id,))
+        return self.cursor.fetchone()
 
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
-    )
-    logger.info("Starting bot")
-
-    await dp.skip_updates()
-    await dp.bot.set_my_commands([
-        types.BotCommand("start", "Запуск бота"),
-        types.BotCommand("cancel", "Если завис бот")
-    ])
-
-    await dp.start_polling(dp)
-
-
-if __name__ == "__main__":
-
-    try:
-        asyncio.run(main())
-    except Exception as e:
-        print(e)
+    def close(self):
+        self.connection.close()
