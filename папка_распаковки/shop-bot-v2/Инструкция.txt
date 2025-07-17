@@ -1,0 +1,5 @@
+1. Установите python с офф. сайта
+2. Установите модули из requirements
+3. Заполните данные в settings.ini
+4. Запустите бота командой py main.py
+5. Сливы в тг - https://t.me/+7xF6Jb3ka9A0ZDhi
